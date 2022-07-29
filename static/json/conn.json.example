@@ -1,0 +1,10 @@
+{
+    "mysql" : {
+        "apps" : {
+            "host": "value_of_host",
+            "database": "value_of_database",
+            "user": "value_of_user",
+            "password": "value_of_password",
+        }
+    }
+}

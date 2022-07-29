@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLAYING STEP ONE - NODE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+<body>
+    <div class="pt-4 pb-4">
+        <div class="container-fluid">
+            <div id="listData" class="card mb-5">
+                <div class="card-header"><%= title %></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>tools</th>
+                                    <th>id_damage_eksternal_doc</th>
+                                    <th>tgl_request</th>
+                                    <th>kode</th>
+                                    <th>tipe</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="formData" class="card mb-5">
+                <div class="card-header">Form add</div>
+                <div class="card-body">
+                    <form onsubmit="submitForm(); return false;">
+                        <div class="container-fluid">
+                            <div class="row row-cols-2 mb-3">
+                                <div class="col">
+                                    <input name="id_damage_eksternal_doc" type="hidden">
+                                    <label for="kode" class="form-label">kode</label>
+                                    <input name="kode" type="text" class="form-control">
+                                </div>
+                                <div class="col">
+                                    <label for="tipe" class="form-label">tipe</label>
+                                    <input name="tipe" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="btn-group" role="group" aria-label="Basic example">
+                                    <button type="submit" class="btn btn-block btn-sm btn-outline-success">Submit</button>
+                                    <button onclick="clearForm()" type="reset" class="btn btn-block btn-sm btn-outline-danger">Cancel</button>
+                                    <span onclick="callList()" class="btn btn-block btn-sm btn-outline-info">Refresh List</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script>
+        const fetchConfig = {
+            method: null,
+            body: null,
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            headers: { 'Content-Type': 'application/json' }
+        }
+
+        window.addEventListener('load', function () {
+            callList()
+        })
+
+        callList = async () => {
+            $('#listData table tbody').html('')
+            let param = {}
+            let config = fetchConfig
+            config.body = null
+            config.method = 'GET'
+            const getList = await fetch('/call-list',config).then((response) => response.json())
+            getList.forEach(data => {
+                let render = ''
+                render += '<tr>'
+                render += '<td>'
+                render += '<div class="btn-group" role="group" aria-label="tools">'
+                render += '<span onclick="showData('+data.id_damage_eksternal_doc+')" class="btn btn-block btn-sm btn-outline-info">Open</span>'
+                render += '<span onclick="deleteData('+data.id_damage_eksternal_doc+')" class="btn btn-block btn-sm btn-outline-danger">Delete</span>'
+                render += '</div>'
+                render += '</td>'
+                render += '<td>'+data.id_damage_eksternal_doc+'</td>'
+                render += '<td>'+data.tgl_request+'</td>'
+                render += '<td>'+data.kode+'</td>'
+                render += '<td>'+data.tipe+'</td>'
+                render += '</tr>'
+                $('#listData table tbody').append(render)
+            })
+        }
+
+        showData = async (id_damage_eksternal_doc) => {
+            let config = fetchConfig
+            config.method = 'GET'
+            const getData = await fetch('/open-data/'+id_damage_eksternal_doc,config).then((response) => response.json())
+            alert(getData.msg)
+            if (getData.res) { 
+                $('form [name=id_damage_eksternal_doc]').val(getData.data.id_damage_eksternal_doc)
+                $('form [name=kode]').val(getData.data.kode)
+                $('form [name=tipe]').val(getData.data.tipe)
+            }
+        }
+
+        deleteData = async (id_damage_eksternal_doc) => {
+            let config = fetchConfig
+            config.method = 'DELETE'
+            const deleteData = await fetch('/delete-data/'+id_damage_eksternal_doc,config).then((response) => response.json())
+            alert(deleteData.msg)
+            if (deleteData.res) { 
+                $('#formData button[type=reset]').click()
+                callList()
+            }
+        }
+
+        clearForm = () => {
+            $('form input').val(null)
+        }
+
+        submitForm = async () => {
+            let param = {}
+            param.id_damage_eksternal_doc = $('form [name=id_damage_eksternal_doc]').val()
+            param.kode = $('form [name=kode]').val()
+            param.tipe = $('form [name=tipe]').val()
+            let config = fetchConfig
+            config.body = JSON.stringify(param)
+            config.method = 'POST'
+            const fetchForm = await fetch('/store',config).then((response) => response.json())
+            console.log(fetchForm)
+            alert(fetchForm.msg)
+            if (fetchForm.res) { 
+                $('#formData button[type=reset]').click()
+                callList()
+            }
+        }
+    </script>
+</body>
+</html>
