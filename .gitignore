@@ -1,3 +1,6 @@
+#static
+static/json/conn.json
+
 # Logs
 logs
 *.log
